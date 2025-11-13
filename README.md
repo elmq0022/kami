@@ -1,4 +1,4 @@
-# Krillian
+# Krillin
 
 ## Description
 A small but capable router library for the go programming lanague that speaks JSON.
