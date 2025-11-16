@@ -2,6 +2,7 @@ package radix
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elmq0022/krillin/router"
 )
@@ -23,49 +24,52 @@ func New[T any](routes []router.Route[T]) (*Radix[T], error) {
 		if len(route.Path) == 0 || route.Path[0] != '/' {
 			return nil, fmt.Errorf("path must start with '/'")
 		}
-		rs := []rune(route.Path)
-		r.addRoute(route, r.root, rs, 0)
+
+		segments := strings.Split(route.Path, "/")[1:]
+		r.addRoute(route, r.root, segments, 0)
 	}
 
 	compress(r.root)
-
 	return &r, nil
 }
 
-func (r *Radix[T]) addRoute(route router.Route[T], root *Node[T], rs []rune, pos int) {
-	if pos >= len(rs) {
-		if root.terminal == nil {
-			root.terminal = make(map[string]T)
+func (r *Radix[T]) addRoute(route router.Route[T], node *Node[T], segments []string, pos int) {
+	if pos >= len(segments) {
+		if node.terminal == nil {
+			node.terminal = make(map[string]T)
 		}
-		root.terminal[route.Method] = route.Handler
+		node.terminal[route.Method] = route.Handler
 		return
 	}
 
-	c := rs[pos]
-	for _, node := range root.children {
-		if node.prefix == string(c) {
-			r.addRoute(route, node, rs, pos+1)
+	seg := segments[pos]
+
+	for _, child := range node.children {
+		if child.prefix == seg {
+			r.addRoute(route, child, segments, pos+1)
 			return
 		}
 	}
 
-	n := &Node[T]{prefix: string(c)}
-	root.children = append(root.children, n)
-	r.addRoute(route, n, rs, pos+1)
+	n := &Node[T]{prefix: seg}
+	node.children = append(node.children, n)
+	r.addRoute(route, n, segments, pos+1)
 }
 
-func compress[T any](n *Node[T]) {
-
-	for i := range n.children {
-		compress(n.children[i])
+func compress[T any](node *Node[T]) {
+	for i := range node.children {
+		compress(node.children[i])
 	}
 
-	if len(n.children) == 1 && n.terminal == nil {
-		child := n.children[0]
+	if node.prefix == "" {
+		return
+	}
 
-		n.prefix += child.prefix
-		n.terminal = child.terminal
-		n.children = child.children
+	if len(node.children) == 1 && node.terminal == nil {
+		child := node.children[0]
+		node.prefix = node.prefix + "/" + child.prefix
+		node.terminal = child.terminal
+		node.children = child.children
 	}
 }
 
@@ -73,6 +77,6 @@ func (r *Radix[T]) Lookup(method, path string) (T, bool) {
 	return *new(T), true
 }
 
-func (r *Radix[T]) FirstPrefix() string {
-	return r.root.prefix
+func (r *Radix[T]) ChildNPrefix(n int) string {
+	return "/" + r.root.children[n].prefix
 }

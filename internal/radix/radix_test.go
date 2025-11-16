@@ -16,11 +16,16 @@ func TestNewRadix(t *testing.T) {
 
 	routes := []router.Route[int]{
 		{Path: path, Method: method, Handler: handler},
+		{Path: "/foo/bar/baz", Method: http.MethodPatch, Handler: 2},
 	}
 
 	r, _ := radix.New(routes)
 
-	if r.FirstPrefix() != path {
-		t.Fatalf("want: %s, got %s", path, r.FirstPrefix())
+	if r.ChildNPrefix(0) != path {
+		t.Fatalf("want: %s, got %s", path, r.ChildNPrefix(0))
+	}
+
+	if r.ChildNPrefix(1) != "/foo/bar/baz" {
+		t.Fatalf("want: %s, got %s", "/foo/bar/baz", r.ChildNPrefix(1))
 	}
 }
