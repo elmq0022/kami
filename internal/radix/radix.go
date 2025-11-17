@@ -74,7 +74,35 @@ func compress[T any](node *Node[T]) {
 }
 
 func (r *Radix[T]) Lookup(method, path string) (T, bool) {
-	return *new(T), true
+	root := r.root
+	return lookup(root, method, path)
+}
+
+func lookup[T any](node *Node[T], method, path string) (T, bool) {
+	var zero T
+
+	if node == nil {
+		return zero, false
+	}
+
+	if len(path) > 0 && path[0] == '/' {
+		path = path[1:]
+	}
+
+	if path == "" {
+		handler, ok := node.terminal[method]
+		return handler, ok
+	}
+
+	for _, child := range node.children {
+		if strings.HasPrefix(path, child.prefix) {
+			path := path[len(child.prefix):]
+			h, ok := lookup(child, method, path)
+			return h, ok
+		}
+	}
+
+	return zero, false
 }
 
 func (r *Radix[T]) ChildNPrefix(n int) string {

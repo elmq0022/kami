@@ -20,12 +20,13 @@ func TestNewRadix(t *testing.T) {
 	}
 
 	r, _ := radix.New(routes)
-
-	if r.ChildNPrefix(0) != path {
-		t.Fatalf("want: %s, got %s", path, r.ChildNPrefix(0))
+	got, _ := r.Lookup(method, path)
+	if got != handler {
+		t.Fatalf("want %d, got %d", handler, got)
 	}
 
-	if r.ChildNPrefix(1) != "/foo/bar/baz" {
-		t.Fatalf("want: %s, got %s", "/foo/bar/baz", r.ChildNPrefix(1))
+	got2, _ := r.Lookup(http.MethodPatch, "/foo/bar/baz")
+	if got2 != 2 {
+		t.Fatalf("want %d, got %d", 2, got2)
 	}
 }
