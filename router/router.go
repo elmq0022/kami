@@ -4,27 +4,29 @@ import (
 	"net/http"
 )
 
-type Route[T any] struct {
+type Handler func(req *http.Request) (int, any, error)
+type Routes []Route
+type Adapter func(http.ResponseWriter, *http.Request, Handler)
+
+type Route struct {
 	Method  string
 	Path    string
-	Handler T
+	Handler Handler
 }
 
-type Adapter[T any] func(http.ResponseWriter, *http.Request, T)
-
-type Router[T any] struct {
-	routes  []Route[T]
-	adapter Adapter[T]
+type Router struct {
+	routes  []Route
+	adapter Adapter
 }
 
-func New[T any](routes []Route[T], processor Adapter[T]) *Router[T] {
-	return &Router[T]{
+func New(routes []Route, processor Adapter) *Router {
+	return &Router{
 		routes:  routes,
 		adapter: processor,
 	}
 }
 
-func (r *Router[T]) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
 		if route.Method == req.Method && route.Path == req.URL.Path {
 			r.adapter(w, req, route.Handler)

@@ -3,9 +3,11 @@ package adapters
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/elmq0022/krillin/router"
 )
 
-func JsonAdapter(w http.ResponseWriter, req *http.Request, handler Handler) {
+func JsonAdapter(w http.ResponseWriter, req *http.Request, handler router.Handler) {
 	status, result, _ := handler(req)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

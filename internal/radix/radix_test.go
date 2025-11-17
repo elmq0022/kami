@@ -12,23 +12,24 @@ func TestNewRadix(t *testing.T) {
 
 	path := "/foo/bar/baz"
 	method := http.MethodGet
-	handler := 1
+	handler := func(req *http.Request) (int, any, error) { return 200, 1, nil }
 
-	routes := []router.Route[int]{
+	routes := router.Routes{
 		{Path: path, Method: method, Handler: handler},
-		{Path: "/foo/bar/baz2", Method: http.MethodPatch, Handler: 2},
+		{Path: "/foo/bar/baz2", Method: http.MethodPatch, Handler: func(req *http.Request) (int, any, error) { return 200, 2, nil }},
 	}
 
 	r, _ := radix.New(routes)
-	got, _ := r.Lookup(method, path)
-	if got != handler {
-		t.Fatalf("want %d, got %d", handler, got)
+	fakeReq, _ := http.NewRequest(http.MethodGet, "", nil)
+
+	h, _ := r.Lookup(method, path)
+	_, got, _ := h(fakeReq)
+	if got != 1 {
+		t.Fatalf("want %d, got %d", 1, got)
 	}
 
-	got2, ok := r.Lookup(http.MethodPatch, "/foo/bar/baz2")
-	if !ok {
-		t.Fatal("not ok")
-	}
+	h, _ = r.Lookup(http.MethodPatch, "/foo/bar/baz2")
+	_, got2, _ := h(fakeReq)
 	if got2 != 2 {
 		t.Fatalf("want %d, got %d", 2, got2)
 	}
