@@ -22,12 +22,12 @@ func TestRouter_GetRoute(t *testing.T) {
 	}
 
 	routes := types.Routes{
-		{Method: http.MethodGet, Path: "/foo/bar", Handler: handler},
+		{Method: http.MethodGet, Path: "/", Handler: handler},
 	}
 
 	r := router.New(routes, adapters.JsonAdapter)
 
-	req := httptest.NewRequest(http.MethodGet, "/foo/bar", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 
 	r.ServeHTTP(rec, req)
