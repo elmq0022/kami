@@ -4,7 +4,7 @@
 
 
 ## Methods
-Support all standard HTTP methods, GET, POST, PUT, DELETE
+Support all standard HTTP methods, GET, POST, PUT, PATCH, DELETE
 
 ## URL matching
 
