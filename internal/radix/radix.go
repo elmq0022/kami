@@ -27,15 +27,7 @@ func New(routes types.Routes) (*Radix, error) {
 			return nil, fmt.Errorf("path must start with '/'")
 		}
 
-		var segments []string
-		if route.Path == "/" {
-			segments = []string{}
-		} else {
-			segments = strings.Split(route.Path, "/")
-			if len(segments) > 0 && segments[0] == "" && len(segments) > 1 {
-				segments = segments[1:]
-			}
-		}
+		segments := filterEmptyStrings(strings.Split(route.Path, "/"))
 		r.addRoute(route, r.root, segments, 0)
 	}
 
@@ -80,15 +72,7 @@ func (r *Radix) addRoute(route types.Route, node *Node, segments []string, pos i
 
 func (r *Radix) Lookup(method, path string) (types.Handler, map[string]string, bool) {
 	root := r.root
-	var segments []string
-	if path == "/" {
-		segments = []string{}
-	} else {
-		segments = strings.Split(path, "/")
-		if segments[0] == "" && len(segments) > 1 {
-			segments = segments[1:]
-		}
-	}
+	segments := filterEmptyStrings(strings.Split(path, "/"))
 	params := make(map[string]string)
 	handler, ok := lookup(root, method, segments, 0, params)
 	return handler, params, ok
@@ -120,4 +104,15 @@ func lookup(node *Node, method string, segments []string, pos int, params map[st
 	}
 
 	return zero, false
+}
+
+func filterEmptyStrings(segments []string) []string {
+	p := 0
+	for _, segment := range segments {
+		if segment != "" {
+			segments[p] = segment
+			p++
+		}
+	}
+	return segments[:p]
 }
