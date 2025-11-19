@@ -24,10 +24,14 @@ func New(routes types.Routes, processor types.Adapter) *Router {
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	h, _, ok := r.radix.Lookup(req.Method, req.URL.Path)
-	if ok {
-		r.adapter(w, req, h)
+	h, params, ok := r.radix.Lookup(req.Method, req.URL.Path)
+	if !ok {
+		http.NotFound(w, req)
 		return
 	}
-	http.NotFound(w, req)
+
+	ctx := WithParams(req.Context(), params)
+	req = req.WithContext(ctx)
+
+	r.adapter(w, req, h)
 }

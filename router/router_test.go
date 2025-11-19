@@ -21,8 +21,15 @@ func TestRouter_GetRoute(t *testing.T) {
 		return http.StatusOK, result, nil
 	}
 
+	// paramsHandler := func(req *http.Request) (int, any, error) {
+	// 	params := router.GetParams(req.Context())
+	// 	result := params["id"]
+	// 	return http.StatusOK, result, nil
+	// }
+
 	routes := types.Routes{
 		{Method: http.MethodGet, Path: "/", Handler: handler},
+		// {Method: http.MethodGet, Path: "/:id", Handler: paramsHandler},
 	}
 
 	r := router.New(routes, adapters.JsonAdapter)
