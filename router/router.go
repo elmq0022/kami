@@ -13,12 +13,12 @@ type Router struct {
 	radix   *radix.Radix
 }
 
-func New(routes types.Routes, processor types.Adapter) *Router {
+func New(routes types.Routes, adapter types.Adapter) *Router {
 	radix, _ := radix.New(routes)
 
 	return &Router{
 		routes:  routes,
-		adapter: processor,
+		adapter: adapter,
 		radix:   radix,
 	}
 }
