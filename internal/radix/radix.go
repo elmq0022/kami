@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/elmq0022/krillin/types"
+	"github.com/elmq0022/kami/types"
 )
 
 type Node struct {

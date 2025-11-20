@@ -7,12 +7,35 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/elmq0022/krillin/adapters"
-	"github.com/elmq0022/krillin/router"
-	"github.com/elmq0022/krillin/types"
+	"github.com/elmq0022/kami/adapters"
+	"github.com/elmq0022/kami/router"
+	"github.com/elmq0022/kami/types"
 )
 
-func TestRouter_GetRoute(t *testing.T) {
+type SpyAdapterRecord struct {
+	Status int
+	Body   any
+	Err    error
+	Params map[string]string
+}
+
+func NewSpyAdapter(record *SpyAdapterRecord) types.Adapter {
+	return func(w http.ResponseWriter, r *http.Request, h types.Handler) {
+		status, body, err := h(r)
+		record.Status = status
+		record.Body = body
+		record.Err = err
+		record.Params = router.GetParams(r.Context())
+	}
+}
+
+func NewTestHandler(status int, body any, err error) types.Handler {
+	return func(req *http.Request) (int, any, error) {
+		return status, body, err
+	}
+}
+
+func TestRouter_BasicRoutes(t *testing.T) {
 	result := make(map[string]bool)
 	result["ok"] = true
 	want, _ := json.Marshal(result)

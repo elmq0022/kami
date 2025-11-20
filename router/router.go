@@ -3,8 +3,8 @@ package router
 import (
 	"net/http"
 
-	"github.com/elmq0022/krillin/internal/radix"
-	"github.com/elmq0022/krillin/types"
+	"github.com/elmq0022/kami/internal/radix"
+	"github.com/elmq0022/kami/types"
 )
 
 type Router struct {

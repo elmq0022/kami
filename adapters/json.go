@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/elmq0022/krillin/types"
+	"github.com/elmq0022/kami/types"
 )
 
 func JsonAdapter(w http.ResponseWriter, req *http.Request, handler types.Handler) {

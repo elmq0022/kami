@@ -5,7 +5,7 @@ import (
 	"maps"
 	"testing"
 
-	"github.com/elmq0022/krillin/router"
+	"github.com/elmq0022/kami/router"
 )
 
 func TestParamsRoundTrip(t *testing.T) {

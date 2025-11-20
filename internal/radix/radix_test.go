@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/elmq0022/krillin/internal/radix"
-	"github.com/elmq0022/krillin/types"
+	"github.com/elmq0022/kami/internal/radix"
+	"github.com/elmq0022/kami/types"
 )
 
 func MakeTestHandler(value any) types.Handler {
