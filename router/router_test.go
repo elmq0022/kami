@@ -44,10 +44,25 @@ func TestRouter_RoundTrip(t *testing.T) {
 		wantParams map[string]string
 		callPath   string
 	}{
+		// Static routes
 		{name: "root", method: http.MethodGet, path: "/", wantStatus: http.StatusOK, wantBody: "root", wantErr: nil, wantParams: map[string]string{}, callPath: "/"},
-		{name: "root", method: http.MethodGet, path: "/book/:id", wantStatus: http.StatusOK, wantBody: "books", wantErr: nil, wantParams: map[string]string{"id": "lifeOfPi"}, callPath: "/book/lifeOfPi"},
-	}
+		{name: "about", method: http.MethodGet, path: "/about", wantStatus: http.StatusOK, wantBody: "about", wantErr: nil, wantParams: map[string]string{}, callPath: "/about"},
 
+		// Param routes
+		{name: "book by id", method: http.MethodGet, path: "/book/:id", wantStatus: http.StatusOK, wantBody: "books", wantErr: nil, wantParams: map[string]string{"id": "lifeOfPi"}, callPath: "/book/lifeOfPi"},
+		{name: "user post", method: http.MethodGet, path: "/user/:userId/post/:postId", wantStatus: http.StatusOK, wantBody: "post", wantErr: nil, wantParams: map[string]string{"userId": "alice", "postId": "42"}, callPath: "/user/alice/post/42"},
+
+		// Overlapping param routes
+		{name: "user list", method: http.MethodGet, path: "/user/list", wantStatus: http.StatusOK, wantBody: "user list", wantErr: nil, wantParams: map[string]string{}, callPath: "/user/list"},
+		{name: "user detail", method: http.MethodGet, path: "/user/:id", wantStatus: http.StatusOK, wantBody: "user detail", wantErr: nil, wantParams: map[string]string{"id": "bob"}, callPath: "/user/bob"},
+
+		// Wildcard routes TODO: implement the wildcard
+		{name: "static js", method: http.MethodGet, path: "/static/:path", wantStatus: http.StatusOK, wantBody: "static", wantErr: nil, wantParams: map[string]string{"path": "app.js"}, callPath: "/static/app.js"},
+		{name: "static css", method: http.MethodGet, path: "/static/:path", wantStatus: http.StatusOK, wantBody: "static", wantErr: nil, wantParams: map[string]string{"path": "main.css"}, callPath: "/static/main.css"},
+
+		// Method mismatch (should not match)
+		{name: "wrong method", method: http.MethodPost, path: "/about", wantStatus: http.StatusNotFound, wantBody: nil, wantErr: nil, wantParams: map[string]string{}, callPath: "/about"},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			record := SpyAdapterRecord{}
