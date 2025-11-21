@@ -8,11 +8,13 @@ import (
 )
 
 type Node struct {
-	prefix    string
-	children  []*Node
-	paramName string
-	param     *Node
-	terminal  map[string]types.Handler
+	prefix       string
+	children     []*Node
+	paramName    string
+	param        *Node
+	wildcardName string
+	wildcard     *Node
+	terminal     map[string]types.Handler
 }
 
 type Radix struct {
@@ -45,7 +47,7 @@ func (r *Radix) addRoute(route types.Route, node *Node, segments []string, pos i
 
 	seg := segments[pos]
 
-	if len(seg) > 0 && seg[0] == ':' {
+	if len(seg) > 1 && seg[0] == ':' {
 		if node.param == nil {
 			node.param = &Node{paramName: seg[1:]}
 			r.addRoute(route, node.param, segments, pos+1)
@@ -55,6 +57,18 @@ func (r *Radix) addRoute(route types.Route, node *Node, segments []string, pos i
 			return
 		} else {
 			panic("bad")
+		}
+	}
+
+	if len(seg) > 1 && seg[0] == '*' {
+		if pos != len(segments)-1 {
+			panic("wildcard in non terminal position")
+		}
+		if node.wildcard == nil {
+			node.wildcard = &Node{wildcardName: seg[1:]}
+			r.addRoute(route, node.wildcard, segments, pos+1)
+		} else {
+			panic("wildcard was not nil")
 		}
 	}
 
@@ -100,6 +114,12 @@ func lookup(node *Node, method string, segments []string, pos int, params map[st
 	if node.param != nil {
 		params[node.param.paramName] = segments[pos]
 		h, ok := lookup(node.param, method, segments, pos+1, params)
+		return h, ok
+	}
+
+	if node.wildcard != nil {
+		params[node.wildcard.wildcardName] = strings.Join(segments[pos:], "/")
+		h, ok := node.wildcard.terminal[method]
 		return h, ok
 	}
 

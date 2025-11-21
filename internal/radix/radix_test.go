@@ -76,29 +76,18 @@ func TestRadix_Lookup(t *testing.T) {
 			wantFound:  true,
 		},
 
-		// // Wildcards
-		// {
-		// 	name: "wildcard match",
-		// 	routes: types.Routes{
-		// 		{Path: "/static/*path", Method: http.MethodGet, Handler: MakeTestHandler("static")},
-		// 	},
-		// 	method:     http.MethodGet,
-		// 	path:       "/static/js/app.js",
-		// 	wantValue:  "static",
-		// 	wantParams: map[string]string{"path": "js/app.js"},
-		// 	wantFound:  true,
-		// },
-		// {
-		// 	name: "wildcard empty",
-		// 	routes: types.Routes{
-		// 		{Path: "/static/*path", Method: http.MethodGet, Handler: MakeTestHandler("static")},
-		// 	},
-		// 	method:     http.MethodGet,
-		// 	path:       "/static/",
-		// 	wantValue:  "static",
-		// 	wantParams: map[string]string{"path": ""},
-		// 	wantFound:  true,
-		// },
+		// Wildcards
+		{
+			name: "wildcard match",
+			routes: types.Routes{
+				{Path: "/static/*path", Method: http.MethodGet, Handler: MakeTestHandler("static")},
+			},
+			method:     http.MethodGet,
+			path:       "/static/js/app.js",
+			wantValue:  "static",
+			wantParams: map[string]string{"path": "js/app.js"},
+			wantFound:  true,
+		},
 
 		// Conflicting routes
 		{
