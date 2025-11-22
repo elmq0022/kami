@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/elmq0022/kami/handlers"
@@ -53,7 +54,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (r *Router) add(method, path string, handler types.Handler) {
 	if err := r.radix.AddRoute(method, path, handler); err != nil {
-		panic(err)
+		panic(fmt.Sprintf("%s %s: %v", method, path, err))
 	}
 }
 
