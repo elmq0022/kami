@@ -23,18 +23,6 @@ type Radix struct {
 
 func New() (*Radix, error) {
 	r := Radix{root: &Node{}}
-
-	// for _, route := range routes {
-	// 	if len(route.Path) == 0 || route.Path[0] != '/' {
-	// 		return nil, fmt.Errorf("path must start with '/'")
-	// 	}
-
-	// 	segments := pathSegments(route.Path)
-	// 	if err := r.insert(route, r.root, segments, 0); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
 	return &r, nil
 }
 

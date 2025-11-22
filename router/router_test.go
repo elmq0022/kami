@@ -63,14 +63,11 @@ func TestRouter_RoundTrip(t *testing.T) {
 		{name: "static css", method: http.MethodGet, path: "/static/*path", wantStatus: http.StatusOK, wantBody: "static", wantErr: nil, wantParams: map[string]string{"path": "css/main.css"}, callPath: "/static/css/main.css"},
 
 		// Method mismatch (should not match)
-		{name: "wrong method", method: http.MethodPost, path: "/about", wantStatus: http.StatusNotFound, wantBody: nil, wantErr: nil, wantParams: map[string]string{}, callPath: "/about"},
+		{name: "wrong method", method: http.MethodPost, path: "/about", wantStatus: http.StatusNotFound, wantBody: "Not Found", wantErr: nil, wantParams: map[string]string{}, callPath: "/about"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			record := SpyAdapterRecord{
-				Status: http.StatusNotFound,
-				Params: map[string]string{},
-			}
+			record := SpyAdapterRecord{}
 			r, err := router.New(NewSpyAdapter(&record))
 			if err != nil {
 				t.Fatalf("failed to create router: %v", err)

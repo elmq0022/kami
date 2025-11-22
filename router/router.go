@@ -3,14 +3,15 @@ package router
 import (
 	"net/http"
 
+	"github.com/elmq0022/kami/handlers"
 	"github.com/elmq0022/kami/internal/radix"
 	"github.com/elmq0022/kami/types"
 )
 
 type Router struct {
-	routes  types.Routes
-	adapter types.Adapter
-	radix   *radix.Radix
+	adapter  types.Adapter
+	radix    *radix.Radix
+	notFound types.Handler
 }
 
 func New(adapter types.Adapter) (*Router, error) {
@@ -20,17 +21,17 @@ func New(adapter types.Adapter) (*Router, error) {
 	}
 
 	return &Router{
-		routes:  types.Routes{},
-		adapter: adapter,
-		radix:   rdx,
+		adapter:  adapter,
+		radix:    rdx,
+		notFound: handlers.DefaultNotFoundHandler,
 	}, nil
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	h, params, ok := r.radix.Lookup(req.Method, req.URL.Path)
 	if !ok {
-		http.NotFound(w, req)
-		return
+		h = r.notFound
+		params = map[string]string{}
 	}
 
 	ctx := WithParams(req.Context(), params)
