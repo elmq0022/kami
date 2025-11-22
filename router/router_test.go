@@ -19,7 +19,9 @@ type SpyAdapterRecord struct {
 
 func NewSpyAdapter(record *SpyAdapterRecord) types.Adapter {
 	return func(w http.ResponseWriter, r *http.Request, h types.Handler) {
-		status, body, err := h(r)
+		resp, err := h(r)
+		status := resp.Status
+		body := resp.Body
 		record.Status = status
 		record.Body = body
 		record.Err = err
@@ -28,8 +30,8 @@ func NewSpyAdapter(record *SpyAdapterRecord) types.Adapter {
 }
 
 func NewTestHandler(status int, body any, err error) types.Handler {
-	return func(req *http.Request) (int, any, error) {
-		return status, body, err
+	return func(req *http.Request) (types.Response, error) {
+		return types.Response{Status: status, Body: body}, err
 	}
 }
 

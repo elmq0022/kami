@@ -4,7 +4,11 @@ import (
 	"net/http"
 )
 
-type Handler func(req *http.Request) (int, any, error)
+type Response struct {
+	Status int
+	Body   any
+}
+type Handler func(req *http.Request) (Response, error)
 type Routes []Route
 type Adapter func(http.ResponseWriter, *http.Request, Handler)
 

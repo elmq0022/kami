@@ -9,15 +9,15 @@ import (
 )
 
 func MakeTestHandler(value any) types.Handler {
-	return func(req *http.Request) (int, any, error) {
-		return 0, value, nil
+	return func(req *http.Request) (types.Response, error) {
+		return types.Response{Status: 0, Body: value}, nil
 	}
 }
 
 func ReadTestHandler(h types.Handler) any {
 	fakeReq, _ := http.NewRequest(http.MethodGet, "", nil)
-	_, value, _ := h(fakeReq)
-	return value
+	resp, _ := h(fakeReq)
+	return resp.Body
 }
 
 func TestRadix_Lookup(t *testing.T) {
