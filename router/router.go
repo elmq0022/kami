@@ -8,19 +8,19 @@ import (
 )
 
 type Router struct {
-	routes  []types.Route
+	routes  types.Routes
 	adapter types.Adapter
 	radix   *radix.Radix
 }
 
-func New(routes types.Routes, adapter types.Adapter) (*Router, error) {
-	rdx, err := radix.New(routes)
+func New(adapter types.Adapter) (*Router, error) {
+	rdx, err := radix.New()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Router{
-		routes:  routes,
+		routes:  types.Routes{},
 		adapter: adapter,
 		radix:   rdx,
 	}, nil

@@ -21,19 +21,19 @@ type Radix struct {
 	root *Node
 }
 
-func New(routes types.Routes) (*Radix, error) {
+func New() (*Radix, error) {
 	r := Radix{root: &Node{}}
 
-	for _, route := range routes {
-		if len(route.Path) == 0 || route.Path[0] != '/' {
-			return nil, fmt.Errorf("path must start with '/'")
-		}
+	// for _, route := range routes {
+	// 	if len(route.Path) == 0 || route.Path[0] != '/' {
+	// 		return nil, fmt.Errorf("path must start with '/'")
+	// 	}
 
-		segments := pathSegments(route.Path)
-		if err := r.insert(route, r.root, segments, 0); err != nil {
-			return nil, err
-		}
-	}
+	// 	segments := pathSegments(route.Path)
+	// 	if err := r.insert(route, r.root, segments, 0); err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	return &r, nil
 }
@@ -106,7 +106,7 @@ func lookup(node *Node, method string, segments []string, pos int, params map[st
 		return zero, false
 	}
 
-	if pos >= len(segments) || len(segments) == 0 {
+	if pos >= len(segments) {
 		handler, ok := node.terminal[method]
 		return handler, ok
 	}

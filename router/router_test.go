@@ -67,12 +67,16 @@ func TestRouter_RoundTrip(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			record := SpyAdapterRecord{}
-			routes := types.Routes{{Method: tt.method, Path: tt.path, Handler: NewTestHandler(tt.wantStatus, tt.wantBody, tt.wantErr)}}
-			r, err := router.New(routes, NewSpyAdapter(&record))
+			record := SpyAdapterRecord{
+				Status: http.StatusNotFound,
+				Params: map[string]string{},
+			}
+			r, err := router.New(NewSpyAdapter(&record))
 			if err != nil {
 				t.Fatalf("failed to create router: %v", err)
 			}
+
+			r.GET(tt.path, NewTestHandler(tt.wantStatus, tt.wantBody, tt.wantErr))
 
 			req := httptest.NewRequest(tt.method, tt.callPath, nil)
 			rec := httptest.NewRecorder()

@@ -139,7 +139,11 @@ func TestRadix_Lookup(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r, err := radix.New(tt.routes)
+			r, err := radix.New()
+			m := tt.routes[0].Method
+			p := tt.routes[0].Path
+			h := tt.routes[0].Handler
+			r.AddRoute(m, p, h)
 			if err != nil {
 				t.Fatalf("failed to create radix: %v", err)
 			}
