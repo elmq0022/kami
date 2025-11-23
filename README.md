@@ -1,4 +1,4 @@
-# kami
+# KAMI
 
 ## Description
 A small but capable router library for the go programming language that speaks JSON.
@@ -8,7 +8,6 @@ The library is primarily aimed at microservices that back a frontend application
 
 ## Philosophy
 The library should be small enough that the code and the tests can be consumed as the documentation.
-
 
 ## Usage
 
@@ -28,7 +27,7 @@ The library should be small enough that the code and the tests can be consumed a
 ### Context Parameters
 
 - any values read from the URL are stored in the request context
-- a map[string]string of parameter value key-value pairs can be retrieved with GetParams(req.Context())
-- if there are no params, expect an empty map[string]string
-- users should check that a value exists in the map using the standard Go idiom: value, exists := params[key]
+- a `map[string]string` of parameter value key-value pairs can be retrieved with `GetParams(req.Context())`
+- if there are no params, expect an empty `map[string]string`
+- users should check that a value exists in the map using the standard Go idiom: `val, exists := params[key]`
 
