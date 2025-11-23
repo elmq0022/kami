@@ -17,5 +17,7 @@ func WithNotFound(h types.Handler) Option {
 }
 
 func WithLogger() Option {
-	return func(r *Router) {}
+	return func(r *Router) {
+		// TODO: implement this.
+	}
 }
