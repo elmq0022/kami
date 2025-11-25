@@ -14,6 +14,7 @@ type Router struct {
 	radix    *radix.Radix
 	notFound types.Handler
 	global   []types.Middleware
+	render   types.Render
 }
 
 func New(adapter types.Adapter, opts ...Option) (*Router, error) {

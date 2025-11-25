@@ -8,6 +8,7 @@ type Response struct {
 	Status int
 	Body   any
 }
+
 type Middleware func(h Handler) Handler
 type Handler func(req *http.Request) (Response, error)
 type Routes []Route
@@ -18,3 +19,5 @@ type Route struct {
 	Path    string
 	Handler Handler
 }
+
+type Render func(w http.ResponseWriter, r *http.Response, response any)
