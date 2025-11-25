@@ -10,24 +10,20 @@ import (
 )
 
 type Router struct {
-	adapter  types.Adapter
 	radix    *radix.Radix
 	notFound types.Handler
 	global   []types.Middleware
-	renderer types.Renderer
 }
 
-func New(adapter types.Adapter, opts ...Option) (*Router, error) {
+func New(opts ...Option) (*Router, error) {
 	rdx, err := radix.New()
 	if err != nil {
 		return nil, err
 	}
 
 	r := &Router{
-		adapter:  adapter,
 		radix:    rdx,
 		notFound: handlers.DefaultNotFoundHandler,
-		renderer: DefaultRenderer,
 	}
 
 	for _, opt := range opts {
@@ -52,7 +48,8 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		h = r.global[i](h)
 	}
 
-	r.adapter(w, req, h)
+	renderable := h(req)
+	renderable.Render(w)
 }
 
 func (r *Router) add(method, path string, handler types.Handler) {

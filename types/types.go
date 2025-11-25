@@ -4,20 +4,21 @@ import (
 	"net/http"
 )
 
+type Renderable interface {
+	Render(w http.ResponseWriter)
+}
+
 type Response struct {
 	Status int
 	Body   any
 }
 
 type Middleware func(h Handler) Handler
-type Handler func(req *http.Request) (Response, error)
+type Handler func(req *http.Request) Renderable
 type Routes []Route
-type Adapter func(http.ResponseWriter, *http.Request, Handler)
 
 type Route struct {
 	Method  string
 	Path    string
 	Handler Handler
 }
-
-type Renderer func(w http.ResponseWriter, r *http.Request, response any)

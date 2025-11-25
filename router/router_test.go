@@ -10,28 +10,9 @@ import (
 	"github.com/elmq0022/kami/types"
 )
 
-type SpyAdapterRecord struct {
-	Status int
-	Body   any
-	Err    error
-	Params map[string]string
-}
-
-func NewSpyAdapter(record *SpyAdapterRecord) types.Adapter {
-	return func(w http.ResponseWriter, r *http.Request, h types.Handler) {
-		resp, err := h(r)
-		status := resp.Status
-		body := resp.Body
-		record.Status = status
-		record.Body = body
-		record.Err = err
-		record.Params = router.GetParams(r.Context())
-	}
-}
-
-func NewTestHandler(status int, body any, err error) types.Handler {
-	return func(req *http.Request) (types.Response, error) {
-		return types.Response{Status: status, Body: body}, err
+func NewTestHandler(status int, body string) types.Handler {
+	return func(req *http.Request) types.Renderable {
+		return &testRenderable{Status: status, Body: body}
 	}
 }
 
@@ -41,7 +22,7 @@ func TestRouter_RoundTrip(t *testing.T) {
 		method     string
 		path       string
 		wantStatus int
-		wantBody   any
+		wantBody   string
 		wantErr    error
 		wantParams map[string]string
 		callPath   string
@@ -67,33 +48,35 @@ func TestRouter_RoundTrip(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			spy := SpyAdapterRecord{}
-			r, err := router.New(NewSpyAdapter(&spy))
+
+			r, err := router.New()
 			if err != nil {
 				t.Fatalf("failed to create router: %v", err)
 			}
 
-			r.GET(tt.path, NewTestHandler(tt.wantStatus, tt.wantBody, tt.wantErr))
+			var gotParams map[string]string
+			handler := func(req *http.Request) types.Renderable {
+				gotParams = router.GetParams(req.Context())
+				return NewTestHandler(tt.wantStatus, tt.wantBody)(req)
+			}
+
+			r.GET(tt.path, handler)
 
 			req := httptest.NewRequest(tt.method, tt.callPath, nil)
-			rec := httptest.NewRecorder()
+			rr := httptest.NewRecorder()
 
-			r.ServeHTTP(rec, req)
+			r.ServeHTTP(rr, req)
 
-			if tt.wantBody != spy.Body {
-				t.Fatalf("body: want %v, got %v", tt.wantBody, spy.Body)
+			if tt.wantBody != rr.Body.String() {
+				t.Fatalf("body: want %v, got %v", tt.wantBody, rr.Body.String())
 			}
 
-			if tt.wantStatus != spy.Status {
-				t.Fatalf("status: want %d, got %d", tt.wantStatus, spy.Status)
+			if tt.wantStatus != rr.Code {
+				t.Fatalf("status: want %d, got %d", tt.wantStatus, rr.Code)
 			}
 
-			if tt.wantErr != spy.Err {
-				t.Fatalf("error: want %v got %v", tt.wantErr, spy.Err)
-			}
-
-			if !maps.Equal(tt.wantParams, spy.Params) {
-				t.Fatalf("params: want %v got %v", tt.wantParams, spy.Params)
+			if !maps.Equal(tt.wantParams, gotParams) {
+				t.Fatalf("params: want %v got %v", tt.wantParams, gotParams)
 			}
 		})
 	}

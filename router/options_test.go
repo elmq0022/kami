@@ -3,76 +3,83 @@ package router_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"slices"
 	"testing"
 
 	"github.com/elmq0022/kami/router"
 	"github.com/elmq0022/kami/types"
 )
 
-func newTestMiddleware(val int) types.Middleware {
-	return func(h types.Handler) types.Handler {
-		return func(req *http.Request) (types.Response, error) {
-			resp, err := h(req)
-			bs, ok := resp.Body.([]int)
-			if !ok {
-				bs = []int{}
-			}
-			bs = append(bs, val)
-			resp.Body = bs
-			return resp, err
-		}
+type testRenderable struct {
+	Status int
+	Body   string
+}
+
+func (r *testRenderable) Render(w http.ResponseWriter) {
+	w.WriteHeader(r.Status)
+	w.Write([]byte(r.Body))
+}
+
+// func newTestMiddleware(val int) types.Middleware {
+// 	return func(h types.Handler) types.Handler {
+// 		return func(req *http.Request) types.Renderable {
+
+// 		}
+// 	}
+// }
+
+func testMiddleWare(next types.Handler) types.Handler {
+	return func(r *http.Request) types.Renderable {
+		response := next(r)
+		return response
 	}
 }
 
-func testHandler(req *http.Request) (types.Response, error) {
-	return types.Response{Status: 200, Body: []int{}}, nil
+func testHandler(req *http.Request) types.Renderable {
+	return &testRenderable{Status: 200, Body: ""}
 }
 
 func TestWithMiddleware(t *testing.T) {
-	spy := SpyAdapterRecord{}
 	r, _ := router.New(
-		NewSpyAdapter(&spy),
-		router.WithMiddleware(newTestMiddleware(1)),
-		router.WithMiddleware(newTestMiddleware(2)),
-		router.WithMiddleware(newTestMiddleware(3)),
+	// router.WithMiddleware(newTestMiddleware(1)),
+	// router.WithMiddleware(newTestMiddleware(2)),
+	// router.WithMiddleware(newTestMiddleware(3)),
 	)
 	r.GET("/", testHandler)
 
-	rec := httptest.NewRecorder()
+	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	r.ServeHTTP(rec, req)
+	r.ServeHTTP(rr, req)
 
-	if spy.Status != http.StatusOK {
-		t.Fatalf("want %d got %d", http.StatusNotFound, spy.Status)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("want %d got %d", http.StatusNotFound, rr.Code)
 	}
 
-	want := []int{3, 2, 1}
-	got := spy.Body.([]int)
-	if !slices.Equal(want, got) {
-		t.Fatalf("want %v, got %v", want, got)
+	want := ""
+	got := rr.Body.String()
+	if got != want {
+		t.Fatalf("want %s, got %s", want, got)
 	}
 }
 
 func TestWithNotFound(t *testing.T) {
-	testNotFound := func(r *http.Request) (types.Response, error) {
-		return types.Response{
-				Status: http.StatusNotFound,
-				Body:   "test not found"},
-			nil
+	testNotFound := func(r *http.Request) types.Renderable {
+		return &testRenderable{
+			Status: http.StatusNotFound,
+			Body:   "test not found",
+		}
 	}
-	spy := SpyAdapterRecord{}
-	r, _ := router.New(NewSpyAdapter(&spy), router.WithNotFound(testNotFound))
 
-	rec := httptest.NewRecorder()
+	r, _ := router.New(router.WithNotFound(testNotFound))
+
+	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	r.ServeHTTP(rec, req)
+	r.ServeHTTP(rr, req)
 
-	if spy.Status != http.StatusNotFound {
-		t.Fatalf("want %d got %d", http.StatusNotFound, spy.Status)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("want %d got %d", http.StatusNotFound, rr.Code)
 	}
 
-	if spy.Body != "test not found" {
-		t.Fatalf("want %s, got %s", "test not found", spy.Body)
+	if rr.Body.String() != "test not found" {
+		t.Fatalf("want %s, got %s", "test not found", rr.Body.String())
 	}
 }

@@ -8,16 +8,23 @@ import (
 	"github.com/elmq0022/kami/types"
 )
 
+type testRenerable struct {
+	Value any
+}
+
+func (tr *testRenerable) Render(w http.ResponseWriter) {
+}
+
 func MakeTestHandler(value any) types.Handler {
-	return func(req *http.Request) (types.Response, error) {
-		return types.Response{Status: 0, Body: value}, nil
+	return func(req *http.Request) types.Renderable {
+		return &testRenerable{Value: value}
 	}
 }
 
 func ReadTestHandler(h types.Handler) any {
 	fakeReq, _ := http.NewRequest(http.MethodGet, "", nil)
-	resp, _ := h(fakeReq)
-	return resp.Body
+	resp := h(fakeReq).(*testRenerable)
+	return resp.Value
 }
 
 func TestRadix_AddRoute_Validation(t *testing.T) {

@@ -9,8 +9,7 @@ import (
 )
 
 func TestSubRouter(t *testing.T) {
-	spy := SpyAdapterRecord{}
-	r, err := router.New(NewSpyAdapter(&spy))
+	r, err := router.New()
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -18,26 +17,25 @@ func TestSubRouter(t *testing.T) {
 	api := r.Group("/api/v1/")
 	wantStatus := 200
 	wantBody := "bar"
-	var wantErr error = nil
 
-	api.GET("/foo", NewTestHandler(wantStatus, wantBody, wantErr))
+	api.GET("/foo", NewTestHandler(wantStatus, wantBody))
 
 	req, err := http.NewRequest(http.MethodGet, "/api/v1/foo", nil)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	rec := httptest.NewRecorder()
-	r.ServeHTTP(rec, req)
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
 
-	if spy.Status != wantStatus {
-		t.Fatalf("want %d, got %d", wantStatus, spy.Status)
+	if rr.Code != wantStatus {
+		t.Fatalf("want %d, got %d", wantStatus, rr.Code)
 	}
 
-	if spy.Body.(string) != wantBody {
-		t.Fatalf("want %s, got %s", wantBody, spy.Body.(string))
+	if rr.Body.String() != wantBody {
+		t.Fatalf("want %s, got %s", wantBody, rr.Body.String())
 	}
 
-	if spy.Err != wantErr {
-		t.Fatalf("want %v, got %v", &wantErr, spy.Err)
-	}
+	// if spy.Err != wantErr {
+	// 	t.Fatalf("want %v, got %v", &wantErr, spy.Err)
+	// }
 }
