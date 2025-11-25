@@ -14,7 +14,7 @@ type Router struct {
 	radix    *radix.Radix
 	notFound types.Handler
 	global   []types.Middleware
-	render   types.Render
+	renderer types.Renderer
 }
 
 func New(adapter types.Adapter, opts ...Option) (*Router, error) {
@@ -27,6 +27,7 @@ func New(adapter types.Adapter, opts ...Option) (*Router, error) {
 		adapter:  adapter,
 		radix:    rdx,
 		notFound: handlers.DefaultNotFoundHandler,
+		renderer: DefaultRenderer,
 	}
 
 	for _, opt := range opts {
@@ -46,6 +47,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx := WithParams(req.Context(), params)
 	req = req.WithContext(ctx)
 
+	// TODO: this seems backwards
 	for i := len(r.global) - 1; i >= 0; i-- {
 		h = r.global[i](h)
 	}

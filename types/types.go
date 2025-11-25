@@ -20,4 +20,4 @@ type Route struct {
 	Handler Handler
 }
 
-type Render func(w http.ResponseWriter, r *http.Response, response any)
+type Renderer func(w http.ResponseWriter, r *http.Request, response any)
