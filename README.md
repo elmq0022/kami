@@ -31,3 +31,9 @@ The library should be small enough that the code and the tests can be consumed a
 - if there are no params, expect an empty `map[string]string`
 - users should check that a value exists in the map using the standard Go idiom: `val, exists := params[key]`
 
+
+### Path Registration
+
+The addition of a path mutates the radix used for looks and is NOT thread safe.
+The expectation is routes will be registered prior to the server performing any path lookups.
+Lookups are read only and therefor thread safe.
