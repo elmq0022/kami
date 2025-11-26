@@ -15,10 +15,9 @@ A panic should not kill the http server.
 
 An error should return a status code in the 4xx - 5xx range.
 Errors should inclued a JSON payload consisting of:
-- error
-- code
-- message
-- details
+- status code
+- the url
+- error message
 
 ## Content Type
 Always Content-Type: application/json

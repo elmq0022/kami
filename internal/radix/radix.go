@@ -34,7 +34,7 @@ func (r *Radix) AddRoute(method string, path string, handler types.Handler) erro
 	route := types.Route{Method: method, Path: path, Handler: handler}
 	segments := pathSegments(path)
 
-	if err := validate__NoDuplicateParams(path, segments); err != nil {
+	if err := validate_NoDuplicateParams(path, segments); err != nil {
 		return err
 	}
 
@@ -144,10 +144,10 @@ func pathSegments(path string) []string {
 	return segments[:p]
 }
 
-func validate__NoDuplicateParams(path string, segments []string) error {
+func validate_NoDuplicateParams(path string, segments []string) error {
 	seen := make(map[string]bool)
 	for _, seg := range segments {
-		if len(seg) < 1 || seg[0] == ':' || seg[0] == '*' {
+		if len(seg) >= 1 && (seg[0] == ':' || seg[0] == '*') {
 			if _, ok := seen[seg[1:]]; ok {
 				return fmt.Errorf("duplicate parameter %s defined in path %s", seg[1:], path)
 			}

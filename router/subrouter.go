@@ -29,13 +29,13 @@ func NewSubRouter(r *Router, prefix string) SubRouter {
 
 	return SubRouter{
 		r:      r,
-		prefix: prefix,
+		prefix: trimedPrefix,
 	}
 }
 
 func (s *SubRouter) add(method, path string, handler types.Handler) {
-	path = strings.Join([]string{s.prefix, path}, "/")
-	s.r.add(method, path, handler)
+	fullPath := s.prefix + "/" + strings.TrimLeft(path, "/")
+	s.r.add(method, fullPath, handler)
 }
 
 func (s *SubRouter) GET(path string, handler types.Handler) {
