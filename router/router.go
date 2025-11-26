@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/elmq0022/kami/handlers"
@@ -34,6 +35,17 @@ func New(opts ...Option) (*Router, error) {
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("panic handling %s %s: %v", req.Method, req.URL.Path, err)
+			http.Error(
+				w,
+				http.StatusText(http.StatusInternalServerError),
+				http.StatusInternalServerError,
+			)
+		}
+	}()
+
 	h, params, ok := r.radix.Lookup(req.Method, req.URL.Path)
 	if !ok {
 		h = r.notFound
