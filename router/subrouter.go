@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -13,6 +14,15 @@ type SubRouter struct {
 }
 
 func NewSubRouter(r *Router, prefix string) SubRouter {
+	if len(prefix) < 1 {
+		panic("prefix cannot be an empty string")
+	}
+
+	if prefix[0] != '/' {
+		panic(fmt.Sprintf("prefix %s does not start with a '/'", prefix))
+	}
+
+	prefix = strings.TrimRight(prefix, "/")
 	return SubRouter{
 		r:      r,
 		prefix: prefix,
