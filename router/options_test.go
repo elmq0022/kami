@@ -9,33 +9,33 @@ import (
 	"github.com/elmq0022/kami/types"
 )
 
-type testRenderable struct {
+type testResponder struct {
 	Status int
 	Body   string
 }
 
-func (r *testRenderable) Render(w http.ResponseWriter) {
+func (r *testResponder) Respond(w http.ResponseWriter) {
 	w.WriteHeader(r.Status)
 	w.Write([]byte(r.Body))
 }
 
 // func newTestMiddleware(val int) types.Middleware {
 // 	return func(h types.Handler) types.Handler {
-// 		return func(req *http.Request) types.Renderable {
+// 		return func(req *http.Request) types.Responder {
 
 // 		}
 // 	}
 // }
 
 func testMiddleWare(next types.Handler) types.Handler {
-	return func(r *http.Request) types.Renderable {
+	return func(r *http.Request) types.Responder {
 		response := next(r)
 		return response
 	}
 }
 
-func testHandler(req *http.Request) types.Renderable {
-	return &testRenderable{Status: 200, Body: ""}
+func testHandler(req *http.Request) types.Responder {
+	return &testResponder{Status: 200, Body: ""}
 }
 
 func TestWithMiddleware(t *testing.T) {
@@ -62,8 +62,8 @@ func TestWithMiddleware(t *testing.T) {
 }
 
 func TestWithNotFound(t *testing.T) {
-	testNotFound := func(r *http.Request) types.Renderable {
-		return &testRenderable{
+	testNotFound := func(r *http.Request) types.Responder {
+		return &testResponder{
 			Status: http.StatusNotFound,
 			Body:   "test not found",
 		}

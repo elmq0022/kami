@@ -11,8 +11,8 @@ import (
 )
 
 func NewTestHandler(status int, body string) types.Handler {
-	return func(req *http.Request) types.Renderable {
-		return &testRenderable{Status: status, Body: body}
+	return func(req *http.Request) types.Responder {
+		return &testResponder{Status: status, Body: body}
 	}
 }
 
@@ -55,7 +55,7 @@ func TestRouter_RoundTrip(t *testing.T) {
 			}
 
 			var gotParams map[string]string
-			handler := func(req *http.Request) types.Renderable {
+			handler := func(req *http.Request) types.Responder {
 				gotParams = router.GetParams(req.Context())
 				return NewTestHandler(tt.wantStatus, tt.wantBody)(req)
 			}

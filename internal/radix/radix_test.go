@@ -8,22 +8,22 @@ import (
 	"github.com/elmq0022/kami/types"
 )
 
-type testRenerable struct {
+type testResponder struct {
 	Value any
 }
 
-func (tr *testRenerable) Render(w http.ResponseWriter) {
+func (tr *testResponder) Respond(w http.ResponseWriter) {
 }
 
 func MakeTestHandler(value any) types.Handler {
-	return func(req *http.Request) types.Renderable {
-		return &testRenerable{Value: value}
+	return func(req *http.Request) types.Responder {
+		return &testResponder{Value: value}
 	}
 }
 
 func ReadTestHandler(h types.Handler) any {
 	fakeReq, _ := http.NewRequest(http.MethodGet, "", nil)
-	resp := h(fakeReq).(*testRenerable)
+	resp := h(fakeReq).(*testResponder)
 	return resp.Value
 }
 

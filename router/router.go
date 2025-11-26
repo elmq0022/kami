@@ -34,6 +34,13 @@ func New(opts ...Option) (*Router, error) {
 	return r, nil
 }
 
+func (r *Router) Run(port string) {
+	log.Printf("Starting server on %s", port)
+	if err := http.ListenAndServe(port, r); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
+}
+
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -59,8 +66,8 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		h = r.global[i](h)
 	}
 
-	renderable := h(req)
-	renderable.Render(w)
+	responder := h(req)
+	responder.Respond(w)
 }
 
 func (r *Router) add(method, path string, handler types.Handler) {

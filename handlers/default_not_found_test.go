@@ -11,9 +11,9 @@ import (
 func TestDefaultNotFoundHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/foo", nil)
-	renderer := handlers.DefaultNotFoundHandler(r)
-	renderer.Render(rr)
-	dnf := renderer.(*handlers.DefaultNotFoundRenerable)
+	responder := handlers.DefaultNotFoundHandler(r)
+	responder.Respond(rr)
+	dnf := responder.(*handlers.DefaultNotFoundResponder)
 
 	if rr.Code != dnf.Status {
 		t.Fatalf("want %d, got %d", dnf.Status, rr.Code)
