@@ -1,31 +1,31 @@
 package responders
 
 import (
+	"io/fs"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 )
 
-type StaticDirectoryResponder struct {
-	BaseDir  string
-	FilePath string
+type staticDirectoryResponder struct {
+	handler http.Handler
 }
 
-func (r *StaticDirectoryResponder) Respond(w http.ResponseWriter, req *http.Request) {
-	cleanPath := filepath.Clean("/" + r.FilePath)[1:]
+func NewStaticDirResponder(f fs.FS, prefix string) *staticDirectoryResponder {
 
-	if strings.Contains(cleanPath, "..") {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
+	if prefix != "" && !strings.HasSuffix(prefix, "/") {
+		prefix += "/"
 	}
 
-	fullPath := filepath.Join(r.BaseDir, cleanPath)
-
-	stat, err := os.Stat(fullPath)
-	if err == nil && stat.IsDir() {
-		fullPath = filepath.Join(fullPath, "index.html")
+	fsHandler := http.FileServer(http.FS(f))
+	if prefix != "" {
+		fsHandler = http.StripPrefix(prefix, fsHandler)
 	}
 
-	http.ServeFile(w, req, fullPath)
+	return &staticDirectoryResponder{
+		handler: fsHandler,
+	}
+}
+
+func (r *staticDirectoryResponder) Respond(w http.ResponseWriter, req *http.Request) {
+	r.handler.ServeHTTP(w, req)
 }
