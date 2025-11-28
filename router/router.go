@@ -67,7 +67,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	responder := h(req)
-	responder.Respond(w)
+	responder.Respond(w, req)
 }
 
 func (r *Router) add(method, path string, handler types.Handler) {

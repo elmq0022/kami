@@ -12,7 +12,7 @@ func TestDefaultNotFoundHandler(t *testing.T) {
 	rr := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/foo", nil)
 	responder := handlers.DefaultNotFoundHandler(r)
-	responder.Respond(rr)
+	responder.Respond(rr, r)
 	dnf := responder.(*handlers.DefaultNotFoundResponder)
 
 	if rr.Code != dnf.Status {

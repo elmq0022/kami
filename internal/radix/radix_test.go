@@ -12,7 +12,7 @@ type testResponder struct {
 	Value any
 }
 
-func (tr *testResponder) Respond(w http.ResponseWriter) {
+func (tr *testResponder) Respond(w http.ResponseWriter, req *http.Request) {
 }
 
 func MakeTestHandler(value any) types.Handler {

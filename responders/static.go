@@ -10,10 +10,9 @@ import (
 type StaticDirectoryResponder struct {
 	BaseDir  string
 	FilePath string
-	Request  *http.Request
 }
 
-func (r *StaticDirectoryResponder) Respond(w http.ResponseWriter) {
+func (r *StaticDirectoryResponder) Respond(w http.ResponseWriter, req *http.Request) {
 	cleanPath := filepath.Clean("/" + r.FilePath)[1:]
 
 	if strings.Contains(cleanPath, "..") {
@@ -28,5 +27,5 @@ func (r *StaticDirectoryResponder) Respond(w http.ResponseWriter) {
 		fullPath = filepath.Join(fullPath, "index.html")
 	}
 
-	http.ServeFile(w, r.Request, fullPath)
+	http.ServeFile(w, req, fullPath)
 }

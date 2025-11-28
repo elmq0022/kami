@@ -11,7 +11,7 @@ type DefaultNotFoundResponder struct {
 	Body   string
 }
 
-func (dnf *DefaultNotFoundResponder) Respond(w http.ResponseWriter) {
+func (dnf *DefaultNotFoundResponder) Respond(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(dnf.Status)
 	w.Write([]byte(dnf.Body))
 }

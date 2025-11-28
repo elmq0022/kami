@@ -10,7 +10,7 @@ type JSONResponder struct {
 	Status int
 }
 
-func (r *JSONResponder) Respond(w http.ResponseWriter) {
+func (r *JSONResponder) Respond(w http.ResponseWriter, req *http.Request) {
 	data, err := json.Marshal(r.Body)
 	if err != nil {
 		return
@@ -32,7 +32,7 @@ type JSONError struct {
 	Msg string `json:"msg"`
 }
 
-func (e *JSONErrorResponder) Respond(w http.ResponseWriter) {
+func (e *JSONErrorResponder) Respond(w http.ResponseWriter, req *http.Request) {
 	data, err := json.Marshal(JSONError{Msg: e.Msg})
 	if err != nil {
 		return

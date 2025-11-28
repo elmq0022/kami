@@ -14,7 +14,7 @@ type testResponder struct {
 	Body   string
 }
 
-func (r *testResponder) Respond(w http.ResponseWriter) {
+func (r *testResponder) Respond(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(r.Status)
 	w.Write([]byte(r.Body))
 }

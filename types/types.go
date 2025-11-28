@@ -5,7 +5,7 @@ import (
 )
 
 type Responder interface {
-	Respond(w http.ResponseWriter)
+	Respond(w http.ResponseWriter, r *http.Request)
 }
 
 type Response struct {

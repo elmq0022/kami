@@ -57,7 +57,8 @@ func TestJSONResponder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			tt.responder.Respond(w)
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			tt.responder.Respond(w, r)
 
 			if w.Code != tt.expectedStatus {
 				t.Errorf("expected status %d, got %d", tt.expectedStatus, w.Code)
@@ -76,11 +77,12 @@ func TestJSONResponder(t *testing.T) {
 
 func TestJSONResponder_UnmarshalableData(t *testing.T) {
 	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	responder := &JSONResponder{
 		Body: make(chan int), // channels are not JSON marshalable
 	}
 
-	responder.Respond(w)
+	responder.Respond(w, r)
 
 	// Should silently fail - no writes to response
 	if w.Code != http.StatusOK {
@@ -135,7 +137,8 @@ func TestJSONErrorResponder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
-			tt.responder.Respond(w)
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			tt.responder.Respond(w, r)
 
 			if w.Code != tt.expectedStatus {
 				t.Errorf("expected status %d, got %d", tt.expectedStatus, w.Code)
