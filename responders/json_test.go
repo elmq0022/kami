@@ -1,53 +1,46 @@
-package responders
+package responders_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/elmq0022/kami/responders"
+	"github.com/elmq0022/kami/types"
 )
 
 func TestJSONResponder(t *testing.T) {
 	tests := []struct {
 		name           string
-		responder      *JSONResponder
+		responder      types.Responder
 		expectedStatus int
 		expectedBody   string
 		expectedCT     string
 	}{
 		{
-			name: "simple struct with default status",
-			responder: &JSONResponder{
-				Body: map[string]string{"message": "hello"},
-			},
+			name:           "simple struct with default status",
+			responder:      responders.JSONResponse(map[string]string{"message": "hello"}, 200),
 			expectedStatus: http.StatusOK,
 			expectedBody:   `{"message":"hello"}`,
 			expectedCT:     "application/json",
 		},
 		{
-			name: "simple struct with custom status",
-			responder: &JSONResponder{
-				Body:   map[string]int{"count": 42},
-				Status: http.StatusCreated,
-			},
+			name:           "simple struct with custom status",
+			responder:      responders.JSONResponse(map[string]int{"count": 42}, http.StatusCreated),
 			expectedStatus: http.StatusCreated,
 			expectedBody:   `{"count":42}`,
 			expectedCT:     "application/json",
 		},
 		{
-			name: "array body",
-			responder: &JSONResponder{
-				Body:   []string{"foo", "bar", "baz"},
-				Status: http.StatusOK,
-			},
+			name:           "array body",
+			responder:      responders.JSONResponse([]string{"foo", "bar", "baz"}, http.StatusOK),
 			expectedStatus: http.StatusOK,
 			expectedBody:   `["foo","bar","baz"]`,
 			expectedCT:     "application/json",
 		},
 		{
-			name: "null body",
-			responder: &JSONResponder{
-				Body: nil,
-			},
+			name:           "null body",
+			responder:      responders.JSONResponse(nil, 0),
 			expectedStatus: http.StatusOK,
 			expectedBody:   `null`,
 			expectedCT:     "application/json",
@@ -78,9 +71,7 @@ func TestJSONResponder(t *testing.T) {
 func TestJSONResponder_UnmarshalableData(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	responder := &JSONResponder{
-		Body: make(chan int), // channels are not JSON marshalable
-	}
+	responder := responders.JSONResponse(make(chan int), 0) // channels are not JSON marshalable
 
 	responder.Respond(w, r)
 
@@ -97,37 +88,28 @@ func TestJSONResponder_UnmarshalableData(t *testing.T) {
 func TestJSONErrorResponder(t *testing.T) {
 	tests := []struct {
 		name           string
-		responder      *JSONErrorResponder
+		responder      types.Responder
 		expectedStatus int
 		expectedBody   string
 		expectedCT     string
 	}{
 		{
-			name: "not found error",
-			responder: &JSONErrorResponder{
-				Status: http.StatusNotFound,
-				Msg:    "resource not found",
-			},
+			name:           "not found error",
+			responder:      responders.JSONErrorResponse("resource not found", http.StatusNotFound),
 			expectedStatus: http.StatusNotFound,
 			expectedBody:   `{"msg":"resource not found"}`,
 			expectedCT:     "application/problem+json",
 		},
 		{
-			name: "bad request error",
-			responder: &JSONErrorResponder{
-				Status: http.StatusBadRequest,
-				Msg:    "invalid input",
-			},
+			name:           "bad request error",
+			responder:      responders.JSONErrorResponse("invalid input", http.StatusBadRequest),
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   `{"msg":"invalid input"}`,
 			expectedCT:     "application/problem+json",
 		},
 		{
-			name: "internal server error",
-			responder: &JSONErrorResponder{
-				Status: http.StatusInternalServerError,
-				Msg:    "something went wrong",
-			},
+			name:           "internal server error",
+			responder:      responders.JSONErrorResponse("something went wrong", http.StatusInternalServerError),
 			expectedStatus: http.StatusInternalServerError,
 			expectedBody:   `{"msg":"something went wrong"}`,
 			expectedCT:     "application/problem+json",
