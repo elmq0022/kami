@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync/atomic"
 
 	"github.com/elmq0022/kami/handlers"
 	"github.com/elmq0022/kami/internal/radix"
@@ -21,6 +22,7 @@ type Router struct {
 	radix    *radix.Radix
 	notFound types.Handler
 	global   []types.Middleware
+	started  atomic.Bool
 }
 
 // New creates a new Router with the given options.
@@ -49,6 +51,7 @@ func New(opts ...Option) (*Router, error) {
 // This is a convenience method that calls http.ListenAndServe with the router as the handler.
 // The function will block until the server fails to start or is shut down.
 func (r *Router) Run(port string) {
+	r.started.Store(true)
 	log.Printf("Starting server on %s", port)
 	if err := http.ListenAndServe(port, r); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
@@ -59,6 +62,8 @@ func (r *Router) Run(port string) {
 // It performs route lookup, applies middleware, handles panics, and executes the matched handler.
 // If no route matches, the configured notFound handler is used (defaults to a 404 response).
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	r.started.Store(true)
+
 	defer func() {
 		if err := recover(); err != nil {
 			log.Printf("panic handling %s %s: %v", req.Method, req.URL.Path, err)
@@ -88,6 +93,10 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r *Router) add(method, path string, handler types.Handler, middleware ...types.Middleware) {
+	if r.started.Load() {
+		panic(fmt.Sprintf("cannot register path: %s since the router is running", path))
+	}
+
 	// Apply route-specific middleware in reverse order at registration time
 	h := handler
 	for i := len(middleware) - 1; i >= 0; i-- {
