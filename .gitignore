@@ -1,1 +1,6 @@
 NOTES.md
+
+# Test coverage
+coverage.out
+coverage.txt
+*.coverprofile
