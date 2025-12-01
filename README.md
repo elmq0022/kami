@@ -35,6 +35,25 @@ The author aims to keep the library small enough that reading the code and a few
 - Users should check that a value exists in the map using the standard Go idiom: `val, exists := params[key]`
 
 
+### Middleware
+
+Middleware can be added to the router using the `Use` method, which accepts one or more middleware functions:
+
+```go
+r := router.New()
+r.Use(router.Logger)
+r.Use(myCustomMiddleware1, myCustomMiddleware2)
+```
+
+Middleware is applied to all routes in the order it is registered. The middleware signature is:
+
+```go
+func(next types.Handler) types.Handler
+```
+
+Built-in middleware:
+- `router.Logger` - Logs each request with method, path, status code, and duration
+
 ### Path Registration
 
 The addition of a path mutates the radix tree used for lookups and is NOT thread-safe.

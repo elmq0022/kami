@@ -11,15 +11,6 @@ import (
 // Option is a function that configures a Router during initialization.
 type Option func(r *Router)
 
-// WithMiddleware adds global middleware to the router.
-// Middleware is applied to all routes in the order it is registered.
-// Multiple calls to WithMiddleware will append middleware to the chain.
-func WithMiddleware(mw types.Middleware) Option {
-	return func(r *Router) {
-		r.global = append(r.global, mw)
-	}
-}
-
 // WithNotFound sets a custom handler for 404 Not Found responses.
 // If not specified, a default "Not Found" handler is used.
 func WithNotFound(h types.Handler) Option {
@@ -28,27 +19,21 @@ func WithNotFound(h types.Handler) Option {
 	}
 }
 
-// WithLogger configures request logging for the router.
-// Logs each request with method, path, status code, and duration.
-func WithLogger() Option {
-	return func(r *Router) {
-		loggingMiddleware := func(next types.Handler) types.Handler {
-			return func(req *http.Request) types.Responder {
-				start := time.Now()
+// Logger is a middleware that logs each request with method, path, status code, and duration.
+func Logger(next types.Handler) types.Handler {
+	return func(req *http.Request) types.Responder {
+		start := time.Now()
 
-				// Call the next handler
-				responder := next(req)
+		// Call the next handler
+		responder := next(req)
 
-				// Wrap the responder to capture the response
-				return &loggingResponder{
-					inner:  responder,
-					method: req.Method,
-					path:   req.URL.Path,
-					start:  start,
-				}
-			}
+		// Wrap the responder to capture the response
+		return &loggingResponder{
+			inner:  responder,
+			method: req.Method,
+			path:   req.URL.Path,
+			start:  start,
 		}
-		r.global = append(r.global, loggingMiddleware)
 	}
 }
 

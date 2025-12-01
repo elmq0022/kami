@@ -19,18 +19,33 @@ func (r *testResponder) Respond(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte(r.Body))
 }
 
-// func newTestMiddleware(val int) types.Middleware {
-// 	return func(h types.Handler) types.Handler {
-// 		return func(req *http.Request) types.Responder {
-
-// 		}
-// 	}
-// }
-
-func testMiddleWare(next types.Handler) types.Handler {
+func testMiddleware1(next types.Handler) types.Handler {
 	return func(r *http.Request) types.Responder {
-		response := next(r)
-		return response
+		responder := next(r)
+		return &testResponder{
+			Status: responder.(*testResponder).Status,
+			Body:   responder.(*testResponder).Body + "1",
+		}
+	}
+}
+
+func testMiddleware2(next types.Handler) types.Handler {
+	return func(r *http.Request) types.Responder {
+		responder := next(r)
+		return &testResponder{
+			Status: responder.(*testResponder).Status,
+			Body:   responder.(*testResponder).Body + "2",
+		}
+	}
+}
+
+func testMiddleware3(next types.Handler) types.Handler {
+	return func(r *http.Request) types.Responder {
+		responder := next(r)
+		return &testResponder{
+			Status: responder.(*testResponder).Status,
+			Body:   responder.(*testResponder).Body + "3",
+		}
 	}
 }
 
@@ -38,12 +53,9 @@ func testHandler(req *http.Request) types.Responder {
 	return &testResponder{Status: 200, Body: ""}
 }
 
-func TestWithMiddleware(t *testing.T) {
-	r, _ := router.New(
-	// router.WithMiddleware(newTestMiddleware(1)),
-	// router.WithMiddleware(newTestMiddleware(2)),
-	// router.WithMiddleware(newTestMiddleware(3)),
-	)
+func TestUse(t *testing.T) {
+	r, _ := router.New()
+	r.Use(testMiddleware1, testMiddleware2, testMiddleware3)
 	r.GET("/", testHandler)
 
 	rr := httptest.NewRecorder()
@@ -51,10 +63,10 @@ func TestWithMiddleware(t *testing.T) {
 	r.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
-		t.Fatalf("want %d got %d", http.StatusNotFound, rr.Code)
+		t.Fatalf("want %d got %d", http.StatusOK, rr.Code)
 	}
 
-	want := ""
+	want := "321"
 	got := rr.Body.String()
 	if got != want {
 		t.Fatalf("want %s, got %s", want, got)
@@ -84,8 +96,9 @@ func TestWithNotFound(t *testing.T) {
 	}
 }
 
-func TestWithLogger(t *testing.T) {
-	r, _ := router.New(router.WithLogger())
+func TestLogger(t *testing.T) {
+	r, _ := router.New()
+	r.Use(router.Logger)
 	r.GET("/test", func(req *http.Request) types.Responder {
 		return &testResponder{Status: http.StatusOK, Body: "logged"}
 	})

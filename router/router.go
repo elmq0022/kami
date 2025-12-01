@@ -163,6 +163,13 @@ func (r *Router) Group(prefix string) SubRouter {
 	return NewSubRouter(r, prefix)
 }
 
+// Use adds one or more middleware to the router's global middleware chain.
+// Middleware is applied to all routes in the order it is registered.
+// Multiple calls to Use will append middleware to the chain.
+func (r *Router) Use(mw ...types.Middleware) {
+	r.global = append(r.global, mw...)
+}
+
 // ServeStatic registers a handler to serve static files from the given filesystem.
 // The prefix determines the URL path where files will be served.
 // For example, ServeStatic(os.DirFS("./static"), "/static") serves files from
