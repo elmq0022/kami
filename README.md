@@ -11,6 +11,41 @@ Web templates are also planned.
 ## Philosophy
 The author aims to keep the library small enough that reading the code and a few examples can serve as the documentation.
 
+## Examples
+
+The project includes example applications demonstrating various features:
+
+### Quickstart Example
+A basic example showing routing and JSON responses.
+
+**Run with:**
+```bash
+task run:example:quickstart
+```
+
+**Features demonstrated:**
+- Basic routing with `GET` requests
+- URL parameters (`:id`)
+- JSON responses using `responders.JSONResponse`
+- Handler functions returning `types.Responder`
+
+**Source:** [examples/quickstart/main.go](examples/quickstart/main.go)
+
+### Static File Serving Example
+Demonstrates serving static files from an embedded filesystem.
+
+**Run with:**
+```bash
+task run:example:static
+```
+
+**Features demonstrated:**
+- Serving static files with `ServeStatic`
+- Using Go's `embed.FS` to bundle assets
+- Filesystem mounting at specific routes
+
+**Source:** [examples/static/main.go](examples/static/main.go)
+
 ## Usage
 
 ### Routing Paths

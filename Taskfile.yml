@@ -4,3 +4,13 @@ tasks:
   test:
     cmds:
       - go test ./...
+
+  run:example:quickstart:
+    desc: Run the quickstart example
+    cmds:
+      - go run -tags=examples ./examples/quickstart/main.go
+
+  run:example:static:
+    desc: Run the static file serving example
+    cmds:
+      - go run -tags=examples ./examples/static/main.go
