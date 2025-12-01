@@ -37,7 +37,11 @@ The author aims to keep the library small enough that reading the code and a few
 
 ### Middleware
 
-Middleware can be added to the router using the `Use` method, which accepts one or more middleware functions:
+The framework supports two types of middleware:
+
+#### Global Middleware
+
+Global middleware can be added to the router using the `Use` method, which accepts one or more middleware functions:
 
 ```go
 r := router.New()
@@ -45,13 +49,38 @@ r.Use(router.Logger)
 r.Use(myCustomMiddleware1, myCustomMiddleware2)
 ```
 
-Middleware is applied to all routes in the order it is registered. The middleware signature is:
+Global middleware is applied to **all routes** and can be added at any time during route registration. It is applied at **request time**, giving you flexibility in when you register it.
+
+#### Route-Specific Middleware
+
+Route-specific middleware can be provided as additional arguments when registering a route:
+
+```go
+r.GET("/admin", adminHandler, authMiddleware, rateLimitMiddleware)
+r.POST("/api/data", dataHandler, validateMiddleware)
+```
+
+Route-specific middleware is applied **only to that specific route** and is composed at **registration time** for better performance.
+
+#### Execution Order
+
+When both global and route-specific middleware are used, they execute in this order:
+
+```go
+r.Use(logger, cors)                    // Global middleware
+r.GET("/admin", handler, auth, rateLimit)  // Route-specific middleware
+
+// Execution order: logger -> cors -> auth -> rateLimit -> handler
+```
+
+The middleware signature is:
 
 ```go
 func(next types.Handler) types.Handler
 ```
 
-Built-in middleware:
+#### Built-in Middleware
+
 - `router.Logger` - Logs each request with method, path, status code, and duration
 
 ### Path Registration

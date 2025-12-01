@@ -115,3 +115,49 @@ func TestLogger(t *testing.T) {
 		t.Fatalf("want %s, got %s", "logged", rr.Body.String())
 	}
 }
+
+func TestRouteSpecificMiddleware(t *testing.T) {
+	r, _ := router.New()
+	r.Use(testMiddleware1) // Global middleware
+
+	// Route with route-specific middleware
+	r.GET("/with-mw", testHandler, testMiddleware2, testMiddleware3)
+
+	// Route without route-specific middleware
+	r.GET("/without-mw", testHandler)
+
+	t.Run("route with middleware", func(t *testing.T) {
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/with-mw", nil)
+		r.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusOK {
+			t.Fatalf("want %d got %d", http.StatusOK, rr.Code)
+		}
+
+		// Global (mw1) -> Route-specific (mw2, mw3) -> handler
+		// Results in: 1 + 2 + 3 (reverse order due to wrapping)
+		want := "321"
+		got := rr.Body.String()
+		if got != want {
+			t.Fatalf("want %s, got %s", want, got)
+		}
+	})
+
+	t.Run("route without middleware", func(t *testing.T) {
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/without-mw", nil)
+		r.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusOK {
+			t.Fatalf("want %d got %d", http.StatusOK, rr.Code)
+		}
+
+		// Only global middleware (mw1)
+		want := "1"
+		got := rr.Body.String()
+		if got != want {
+			t.Fatalf("want %s, got %s", want, got)
+		}
+	})
+}

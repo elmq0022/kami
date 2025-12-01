@@ -87,73 +87,88 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	responder.Respond(w, req)
 }
 
-func (r *Router) add(method, path string, handler types.Handler) {
-	if err := r.radix.AddRoute(method, path, handler); err != nil {
+func (r *Router) add(method, path string, handler types.Handler, middleware ...types.Middleware) {
+	// Apply route-specific middleware in reverse order at registration time
+	h := handler
+	for i := len(middleware) - 1; i >= 0; i-- {
+		h = middleware[i](h)
+	}
+
+	if err := r.radix.AddRoute(method, path, h); err != nil {
 		panic(fmt.Sprintf("%s %s: %v", method, path, err))
 	}
 }
 
 // GET registers a handler for GET requests at the given path.
 // Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) GET(path string, handler types.Handler) {
-	r.add(http.MethodGet, path, handler)
+func (r *Router) GET(path string, handler types.Handler, middleware ...types.Middleware) {
+	r.add(http.MethodGet, path, handler, middleware...)
 }
 
 // POST registers a handler for POST requests at the given path.
 // Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) POST(path string, handler types.Handler) {
-	r.add(http.MethodPost, path, handler)
+func (r *Router) POST(path string, handler types.Handler, middleware ...types.Middleware) {
+	r.add(http.MethodPost, path, handler, middleware...)
 }
 
 // PUT registers a handler for PUT requests at the given path.
 // Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) PUT(path string, handler types.Handler) {
-	r.add(http.MethodPut, path, handler)
+func (r *Router) PUT(path string, handler types.Handler, middleware ...types.Middleware) {
+	r.add(http.MethodPut, path, handler, middleware...)
 }
 
 // DELETE registers a handler for DELETE requests at the given path.
 // Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) DELETE(path string, handler types.Handler) {
-	r.add(http.MethodDelete, path, handler)
+func (r *Router) DELETE(path string, handler types.Handler, middleware ...types.Middleware) {
+	r.add(http.MethodDelete, path, handler, middleware...)
 }
 
 // PATCH registers a handler for PATCH requests at the given path.
 // Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) PATCH(path string, handler types.Handler) {
-	r.add(http.MethodPatch, path, handler)
+func (r *Router) PATCH(path string, handler types.Handler, middleware ...types.Middleware) {
+	r.add(http.MethodPatch, path, handler, middleware...)
 }
 
 // HEAD registers a handler for HEAD requests at the given path.
 // Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) HEAD(path string, handler types.Handler) {
-	r.add(http.MethodHead, path, handler)
+func (r *Router) HEAD(path string, handler types.Handler, middleware ...types.Middleware) {
+	r.add(http.MethodHead, path, handler, middleware...)
 }
 
 // OPTIONS registers a handler for OPTIONS requests at the given path.
 // Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) OPTIONS(path string, handler types.Handler) {
-	r.add(http.MethodOptions, path, handler)
+func (r *Router) OPTIONS(path string, handler types.Handler, middleware ...types.Middleware) {
+	r.add(http.MethodOptions, path, handler, middleware...)
 }
 
 // CONNECT registers a handler for CONNECT requests at the given path.
 // Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) CONNECT(path string, handler types.Handler) {
-	r.add(http.MethodConnect, path, handler)
+func (r *Router) CONNECT(path string, handler types.Handler, middleware ...types.Middleware) {
+	r.add(http.MethodConnect, path, handler, middleware...)
 }
 
 // TRACE registers a handler for TRACE requests at the given path.
 // Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) TRACE(path string, handler types.Handler) {
-	r.add(http.MethodTrace, path, handler)
+func (r *Router) TRACE(path string, handler types.Handler, middleware ...types.Middleware) {
+	r.add(http.MethodTrace, path, handler, middleware...)
 }
 
 // Group creates a SubRouter with the given path prefix.

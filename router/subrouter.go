@@ -38,56 +38,63 @@ func NewSubRouter(r *Router, prefix string) SubRouter {
 	}
 }
 
-func (s *SubRouter) add(method, path string, handler types.Handler) {
+func (s *SubRouter) add(method, path string, handler types.Handler, middleware ...types.Middleware) {
 	fullPath := s.prefix + "/" + strings.TrimLeft(path, "/")
-	s.r.add(method, fullPath, handler)
+	s.r.add(method, fullPath, handler, middleware...)
 }
 
 // GET registers a handler for GET requests at the given path, prefixed with the SubRouter's prefix.
 // Path can include parameters and wildcards.
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered.
-func (s *SubRouter) GET(path string, handler types.Handler) {
-	s.add(http.MethodGet, path, handler)
+func (s *SubRouter) GET(path string, handler types.Handler, middleware ...types.Middleware) {
+	s.add(http.MethodGet, path, handler, middleware...)
 }
 
 // POST registers a handler for POST requests at the given path, prefixed with the SubRouter's prefix.
 // Path can include parameters and wildcards.
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered.
-func (s *SubRouter) POST(path string, handler types.Handler) {
-	s.add(http.MethodPost, path, handler)
+func (s *SubRouter) POST(path string, handler types.Handler, middleware ...types.Middleware) {
+	s.add(http.MethodPost, path, handler, middleware...)
 }
 
 // PUT registers a handler for PUT requests at the given path, prefixed with the SubRouter's prefix.
 // Path can include parameters and wildcards.
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered.
-func (s *SubRouter) PUT(path string, handler types.Handler) {
-	s.add(http.MethodPut, path, handler)
+func (s *SubRouter) PUT(path string, handler types.Handler, middleware ...types.Middleware) {
+	s.add(http.MethodPut, path, handler, middleware...)
 }
 
 // PATCH registers a handler for PATCH requests at the given path, prefixed with the SubRouter's prefix.
 // Path can include parameters and wildcards.
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered.
-func (s *SubRouter) PATCH(path string, handler types.Handler) {
-	s.add(http.MethodPatch, path, handler)
+func (s *SubRouter) PATCH(path string, handler types.Handler, middleware ...types.Middleware) {
+	s.add(http.MethodPatch, path, handler, middleware...)
 }
 
 // DELETE registers a handler for DELETE requests at the given path, prefixed with the SubRouter's prefix.
 // Path can include parameters and wildcards.
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered.
-func (s *SubRouter) DELETE(path string, handler types.Handler) {
-	s.add(http.MethodDelete, path, handler)
+func (s *SubRouter) DELETE(path string, handler types.Handler, middleware ...types.Middleware) {
+	s.add(http.MethodDelete, path, handler, middleware...)
 }
 
 // HEAD registers a handler for HEAD requests at the given path, prefixed with the SubRouter's prefix.
 // Path can include parameters and wildcards.
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered.
-func (s *SubRouter) HEAD(path string, handler types.Handler) {
-	s.add(http.MethodHead, path, handler)
+func (s *SubRouter) HEAD(path string, handler types.Handler, middleware ...types.Middleware) {
+	s.add(http.MethodHead, path, handler, middleware...)
 }
 
 // OPTIONS registers a handler for OPTIONS requests at the given path, prefixed with the SubRouter's prefix.
 // Path can include parameters and wildcards.
+// Optional middleware can be provided as additional arguments and will be applied to this route only.
 // Panics if the route cannot be registered.
-func (s *SubRouter) OPTIONS(path string, handler types.Handler) {
-	s.add(http.MethodOptions, path, handler)
+func (s *SubRouter) OPTIONS(path string, handler types.Handler, middleware ...types.Middleware) {
+	s.add(http.MethodOptions, path, handler, middleware...)
 }
