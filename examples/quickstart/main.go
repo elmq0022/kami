@@ -11,15 +11,15 @@ import (
 )
 
 func main() {
-	// initialize the  app
+	// initialize the app
 	r, err := router.New()
 	if err != nil {
 		panic(err)
 	}
 
-	// add routes
-	r.GET("/", hello)
-	r.GET("/user/:id", getUser)
+	// add routes using the builder-style API
+	r.Prefix("/").GET(hello)
+	r.Prefix("/user/:id").GET(getUser)
 
 	r.Run(":8080")
 }

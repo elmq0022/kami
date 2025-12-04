@@ -55,8 +55,8 @@ func testHandler(req *http.Request) types.Responder {
 
 func TestUse(t *testing.T) {
 	r, _ := router.New()
-	r.Use(testMiddleware1, testMiddleware2, testMiddleware3)
-	r.GET("/", testHandler)
+	r = r.Use(testMiddleware1, testMiddleware2, testMiddleware3)
+	r.Prefix("/").GET(testHandler)
 
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -98,8 +98,8 @@ func TestWithNotFound(t *testing.T) {
 
 func TestLogger(t *testing.T) {
 	r, _ := router.New()
-	r.Use(router.Logger)
-	r.GET("/test", func(req *http.Request) types.Responder {
+	r = r.Use(router.Logger)
+	r.Prefix("/test").GET(func(req *http.Request) types.Responder {
 		return &testResponder{Status: http.StatusOK, Body: "logged"}
 	})
 
@@ -118,13 +118,13 @@ func TestLogger(t *testing.T) {
 
 func TestRouteSpecificMiddleware(t *testing.T) {
 	r, _ := router.New()
-	r.Use(testMiddleware1) // Global middleware
+	r = r.Use(testMiddleware1) // Global middleware
 
-	// Route with route-specific middleware
-	r.GET("/with-mw", testHandler, testMiddleware2, testMiddleware3)
+	// Route with additional middleware via Use()
+	r.Prefix("/with-mw").Use(testMiddleware2, testMiddleware3).GET(testHandler)
 
-	// Route without route-specific middleware
-	r.GET("/without-mw", testHandler)
+	// Route without additional middleware
+	r.Prefix("/without-mw").GET(testHandler)
 
 	t.Run("route with middleware", func(t *testing.T) {
 		rr := httptest.NewRecorder()

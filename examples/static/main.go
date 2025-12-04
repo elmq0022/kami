@@ -24,9 +24,9 @@ func main() {
 		panic(err)
 	}
 
-	// serve static files by passing an fs.FS base directory
-	// and the route base rout to r.ServeStatic
-	r.ServeStatic(web, "/")
+	// serve static files using the builder-style API
+	// the prefix determines where files are served
+	r.Prefix("/").ServeStatic(web)
 
 	// run the app
 	r.Run(":8080")

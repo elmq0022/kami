@@ -60,7 +60,7 @@ func TestRouter_RoundTrip(t *testing.T) {
 				return NewTestHandler(tt.wantStatus, tt.wantBody)(req)
 			}
 
-			r.GET(tt.path, handler)
+			r.Prefix(tt.path).GET(handler)
 
 			req := httptest.NewRequest(tt.method, tt.callPath, nil)
 			rr := httptest.NewRecorder()
@@ -89,7 +89,7 @@ func TestRouter_CannotAddRoutesAfterStarted(t *testing.T) {
 	}
 
 	// Add a route before starting
-	r.GET("/before", NewTestHandler(http.StatusOK, "before"))
+	r.Prefix("/before").GET(NewTestHandler(http.StatusOK, "before"))
 
 	// Simulate the router being started by making a request
 	req := httptest.NewRequest(http.MethodGet, "/before", nil)
@@ -109,5 +109,5 @@ func TestRouter_CannotAddRoutesAfterStarted(t *testing.T) {
 		}
 	}()
 
-	r.GET("/after", NewTestHandler(http.StatusOK, "after"))
+	r.Prefix("/after").GET(NewTestHandler(http.StatusOK, "after"))
 }

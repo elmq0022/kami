@@ -36,3 +36,8 @@ go.work.sum
 
 # Project-specific
 NOTES.md
+
+# Example binaries
+examples/quickstart/quickstart
+examples/static/static
+examples/builder-pattern/builder-pattern

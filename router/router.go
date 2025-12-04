@@ -19,10 +19,11 @@ import (
 // Router is the main HTTP router that uses a radix tree for efficient route matching.
 // It supports middleware, custom 404 handlers, and panic recovery.
 type Router struct {
-	radix    *radix.Radix
-	notFound types.Handler
-	global   []types.Middleware
-	started  atomic.Bool
+	radix      *radix.Radix
+	notFound   types.Handler
+	middleware []types.Middleware
+	started    *atomic.Bool
+	prefix     string
 }
 
 // New creates a new Router with the given options.
@@ -37,6 +38,7 @@ func New(opts ...Option) (*Router, error) {
 	r := &Router{
 		radix:    rdx,
 		notFound: handlers.DefaultNotFoundHandler,
+		started:  &atomic.Bool{},
 	}
 
 	for _, opt := range opts {
@@ -84,131 +86,134 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx := WithParams(req.Context(), params)
 	req = req.WithContext(ctx)
 
-	for i := len(r.global) - 1; i >= 0; i-- {
-		h = r.global[i](h)
-	}
-
 	responder := h(req)
 	responder.Respond(w, req)
 }
 
-func (r *Router) add(method, path string, handler types.Handler, middleware ...types.Middleware) {
+func (r *Router) add(method string, handler types.Handler) {
 	if r.started.Load() {
-		panic(fmt.Sprintf("cannot register path: %s since the router is running", path))
+		panic(fmt.Sprintf("cannot register path: %s since the router is running", r.prefix))
 	}
 
 	// Apply route-specific middleware in reverse order at registration time
 	h := handler
-	for i := len(middleware) - 1; i >= 0; i-- {
-		h = middleware[i](h)
+	for i := len(r.middleware) - 1; i >= 0; i-- {
+		h = r.middleware[i](h)
 	}
 
-	if err := r.radix.AddRoute(method, path, h); err != nil {
-		panic(fmt.Sprintf("%s %s: %v", method, path, err))
+	if err := r.radix.AddRoute(method, r.prefix, h); err != nil {
+		panic(fmt.Sprintf("%s %s: %v", method, r.prefix, err))
 	}
 }
 
-// GET registers a handler for GET requests at the given path.
-// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
-// Optional middleware can be provided as additional arguments and will be applied to this route only.
+// GET registers a handler for GET requests at the router's current prefix path.
+// The prefix can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) GET(path string, handler types.Handler, middleware ...types.Middleware) {
-	r.add(http.MethodGet, path, handler, middleware...)
+func (r *Router) GET(handler types.Handler) {
+	r.add(http.MethodGet, handler)
 }
 
-// POST registers a handler for POST requests at the given path.
-// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
-// Optional middleware can be provided as additional arguments and will be applied to this route only.
+// POST registers a handler for POST requests at the router's current prefix path.
+// The prefix can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) POST(path string, handler types.Handler, middleware ...types.Middleware) {
-	r.add(http.MethodPost, path, handler, middleware...)
+func (r *Router) POST(handler types.Handler) {
+	r.add(http.MethodPost, handler)
 }
 
-// PUT registers a handler for PUT requests at the given path.
-// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
-// Optional middleware can be provided as additional arguments and will be applied to this route only.
+// PUT registers a handler for PUT requests at the router's current prefix path.
+// The prefix can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) PUT(path string, handler types.Handler, middleware ...types.Middleware) {
-	r.add(http.MethodPut, path, handler, middleware...)
+func (r *Router) PUT(handler types.Handler) {
+	r.add(http.MethodPut, handler)
 }
 
-// DELETE registers a handler for DELETE requests at the given path.
-// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
-// Optional middleware can be provided as additional arguments and will be applied to this route only.
+// DELETE registers a handler for DELETE requests at the router's current prefix path.
+// The prefix can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) DELETE(path string, handler types.Handler, middleware ...types.Middleware) {
-	r.add(http.MethodDelete, path, handler, middleware...)
+func (r *Router) DELETE(handler types.Handler) {
+	r.add(http.MethodDelete, handler)
 }
 
-// PATCH registers a handler for PATCH requests at the given path.
-// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
-// Optional middleware can be provided as additional arguments and will be applied to this route only.
+// PATCH registers a handler for PATCH requests at the router's current prefix path.
+// The prefix can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) PATCH(path string, handler types.Handler, middleware ...types.Middleware) {
-	r.add(http.MethodPatch, path, handler, middleware...)
+func (r *Router) PATCH(handler types.Handler) {
+	r.add(http.MethodPatch, handler)
 }
 
-// HEAD registers a handler for HEAD requests at the given path.
-// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
-// Optional middleware can be provided as additional arguments and will be applied to this route only.
+// HEAD registers a handler for HEAD requests at the router's current prefix path.
+// The prefix can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) HEAD(path string, handler types.Handler, middleware ...types.Middleware) {
-	r.add(http.MethodHead, path, handler, middleware...)
+func (r *Router) HEAD(handler types.Handler) {
+	r.add(http.MethodHead, handler)
 }
 
-// OPTIONS registers a handler for OPTIONS requests at the given path.
-// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
-// Optional middleware can be provided as additional arguments and will be applied to this route only.
+// OPTIONS registers a handler for OPTIONS requests at the router's current prefix path.
+// The prefix can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) OPTIONS(path string, handler types.Handler, middleware ...types.Middleware) {
-	r.add(http.MethodOptions, path, handler, middleware...)
+func (r *Router) OPTIONS(handler types.Handler) {
+	r.add(http.MethodOptions, handler)
 }
 
-// CONNECT registers a handler for CONNECT requests at the given path.
-// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
-// Optional middleware can be provided as additional arguments and will be applied to this route only.
+// CONNECT registers a handler for CONNECT requests at the router's current prefix path.
+// The prefix can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) CONNECT(path string, handler types.Handler, middleware ...types.Middleware) {
-	r.add(http.MethodConnect, path, handler, middleware...)
+func (r *Router) CONNECT(handler types.Handler) {
+	r.add(http.MethodConnect, handler)
 }
 
-// TRACE registers a handler for TRACE requests at the given path.
-// Path can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
-// Optional middleware can be provided as additional arguments and will be applied to this route only.
+// TRACE registers a handler for TRACE requests at the router's current prefix path.
+// The prefix can include parameters (e.g., "/users/:id") and wildcards (e.g., "/files/*filepath").
 // Panics if the route cannot be registered (e.g., conflicts with existing routes).
-func (r *Router) TRACE(path string, handler types.Handler, middleware ...types.Middleware) {
-	r.add(http.MethodTrace, path, handler, middleware...)
+func (r *Router) TRACE(handler types.Handler) {
+	r.add(http.MethodTrace, handler)
 }
 
-// Group creates a SubRouter with the given path prefix.
-// All routes registered on the SubRouter will be prefixed with this path.
-// For example, Group("/api/v1") creates routes under /api/v1/*.
-func (r *Router) Group(prefix string) SubRouter {
-	return NewSubRouter(r, prefix)
+func (r *Router) shallowCopy() *Router {
+	nr := Router{
+		radix:      r.radix,
+		notFound:   r.notFound,
+		prefix:     r.prefix,
+		started:    r.started,
+		middleware: append([]types.Middleware{}, r.middleware...),
+	}
+	return &nr
 }
 
 // Use adds one or more middleware to the router's global middleware chain.
 // Middleware is applied to all routes in the order it is registered.
 // Multiple calls to Use will append middleware to the chain.
-func (r *Router) Use(mw ...types.Middleware) {
-	r.global = append(r.global, mw...)
+func (r *Router) Use(mws ...types.Middleware) *Router {
+	nr := r.shallowCopy()
+	nr.middleware = append(nr.middleware, mws...)
+	return nr
+}
+
+func (r *Router) Prefix(segment string) *Router {
+	if segment == "" {
+		return r.shallowCopy() // no change
+	}
+
+	// trim trailing slash from existing prefix
+	base := strings.TrimRight(r.prefix, "/")
+	// trim leading slash from new segment
+	seg := strings.TrimLeft(segment, "/")
+
+	nr := r.shallowCopy()
+	nr.prefix = base + "/" + seg
+	return nr
 }
 
 // ServeStatic registers a handler to serve static files from the given filesystem.
-// The prefix determines the URL path where files will be served.
-// For example, ServeStatic(os.DirFS("./static"), "/static") serves files from
+// The router's current prefix determines the URL path where files will be served.
+// For example, r.Prefix("/static").ServeStatic(os.DirFS("./static")) serves files from
 // the ./static directory at /static/*.
 // Automatically handles directory redirects and delegates to http.FileServer.
-func (r *Router) ServeStatic(f fs.FS, prefix string) {
-	staticResponder := responders.NewStaticDirResponder(f, prefix)
+func (r *Router) ServeStatic(f fs.FS) {
+	staticResponder := responders.NewStaticDirResponder(f, r.prefix)
 
-	if !strings.HasSuffix(prefix, "/") {
-		prefix += "/"
-	}
-	prefix += "*fp"
-
-	// Wrap in closure if router expects a func
-	r.GET(prefix, func(req *http.Request) types.Responder {
+	// Add wildcard pattern for file paths and register handler
+	r.Prefix("/*fp").GET(func(req *http.Request) types.Responder {
 		return staticResponder
 	})
 }

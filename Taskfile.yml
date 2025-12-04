@@ -14,3 +14,8 @@ tasks:
     desc: Run the static file serving example
     cmds:
       - go run -tags=examples ./examples/static/main.go
+
+  run:example:builder:
+    desc: Run the builder pattern example (advanced middleware and routing)
+    cmds:
+      - go run -tags=examples ./examples/builder-pattern/main.go
