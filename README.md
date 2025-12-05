@@ -1,4 +1,4 @@
-# KAMI
+# 神 KAMI
 
 ## Description
 A small but capable micro web framework for the Go programming language.
